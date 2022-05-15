@@ -15,10 +15,13 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.os.Message;
+import android.util.Log;
 import android.widget.RemoteViews;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
+
+import java.util.Random;
 
 public class ForegroundService extends Service {
 
@@ -26,20 +29,12 @@ public class ForegroundService extends Service {
 
     private TimeBroadcastReceiver mTimeBroadCastReceiver;
 
-
-    private static final int ALARM_DURATION = 5 * 60 * 1000; // интервал самозапуска сервиса
-    private static final int UPDATE_DURATION = 10 * 1000; // Интервал обновления виджета
-    private static final int UPDATE_MESSAGE  = 1000;
-
-    private UpdateHandler updateHandler;
-
-
     @Override
     public void onCreate() {
         super.onCreate();
         mTimeBroadCastReceiver = new TimeBroadcastReceiver();
         this.registerReceiver(mTimeBroadCastReceiver, new IntentFilter("android.intent.action.TIME_TICK"));
-
+        System.out.println("служба запущена");
     }
 
     @Override
@@ -56,6 +51,17 @@ public class ForegroundService extends Service {
                 .setContentIntent(pendingIntent)
                 .build();
         startForeground(1, notification);
+
+        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(getApplicationContext());
+        ComponentName thisWidget = new ComponentName(getApplicationContext(),MyWidget.class);
+        int[] appWidgetIds = appWidgetManager.getAppWidgetIds(thisWidget);
+
+        for (int appWidgetId:appWidgetIds) {
+            RemoteViews view = new RemoteViews(getApplicationContext().getPackageName(), R.layout.widget);
+            view.setTextViewText(R.id.presentTimeTextView_widget, TimeBroadcastReceiver.getDatetime());
+            appWidgetManager.updateAppWidget(appWidgetId, view);
+        }
+
         return START_STICKY;
     }
 
@@ -83,32 +89,4 @@ public class ForegroundService extends Service {
             manager.createNotificationChannel(serviceChannel);
         }
     }
-
-    private void updateWidget() {
-        // Обновить виджет
-        RemoteViews remoteViews = new RemoteViews(getApplicationContext().getPackageName(), R.layout.widget);
-        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(getApplicationContext());
-        appWidgetManager.updateAppWidget(new ComponentName(getApplicationContext(), MyWidget.class), remoteViews);
-
-        // Отправляем следующее сообщение об обновлении
-        Message message = updateHandler.obtainMessage();
-        message.what = UPDATE_MESSAGE;
-        updateHandler.sendMessageDelayed(message, UPDATE_DURATION);
-    }
-
-    protected final class UpdateHandler extends Handler {
-
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case UPDATE_MESSAGE:
-                    updateWidget();
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-
-
-    }
+}

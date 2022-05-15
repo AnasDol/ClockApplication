@@ -1,47 +1,54 @@
 package com.example.clockapplication;
 
-
-import java.util.Arrays;
-
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
+import android.content.ComponentName;
 import android.content.Context;
-import android.util.Log;
-import android.widget.TextView;
+import android.content.Intent;
+import android.os.Build;
+import android.widget.RemoteViews;
+
+import androidx.annotation.RequiresApi;
 
 public class MyWidget extends AppWidgetProvider {
 
-    final String LOG_TAG = "myLogs";
-    //TextView presentTimeTextView;
-
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void onEnabled(Context context) {
         super.onEnabled(context);
-        Log.d(LOG_TAG, "onEnabled");
 
-
+        Intent intent = new Intent(context, ForegroundService.class);
+        context.startService(intent);
+        context.startForegroundService(intent);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         super.onUpdate(context, appWidgetManager, appWidgetIds);
+        Intent intent = new Intent(context, ForegroundService.class);
+        context.startService(intent);
+        context.startForegroundService(intent);
 
-        Log.d(LOG_TAG, "onUpdate " + Arrays.toString(appWidgetIds));
+    }
 
-        System.out.println("widget updated");
-
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    @Override
+    public void onRestored(Context context, int[] oldWidgetIds, int[] newWidgetIds) {
+        super.onRestored(context, oldWidgetIds, newWidgetIds);
+        Intent intent = new Intent(context, ForegroundService.class);
+        context.startService(intent);
+        context.startForegroundService(intent);
     }
 
     @Override
     public void onDeleted(Context context, int[] appWidgetIds) {
         super.onDeleted(context, appWidgetIds);
-        Log.d(LOG_TAG, "onDeleted " + Arrays.toString(appWidgetIds));
     }
 
     @Override
     public void onDisabled(Context context) {
         super.onDisabled(context);
-        Log.d(LOG_TAG, "onDisabled");
     }
 
 }
